@@ -50,23 +50,23 @@ class ProductManager {
 
     deleteProduct = async (id) => {
         const data = await this.getProduct()
-        const toBeDeleted = data.find(product => product.id === id)
+        const deleted = data.find(product => product.id === id)
 
-        if(toBeDeleted){
-            const index = data.indexOf(toBeDeleted)
+        if(deleted){
+            const index = data.indexOf(deleted)
             data.splice(index, 1);
             await fs.promises.writeFile(this.path, JSON.stringify(data))
-            console.log(`\nPRODUCTO "${id} ELIMINADO".`);
+            console.log(`PRODUCTO "${id} ELIMINADO".`);
         } else {
-            console.log(`\n\nERROR EL PRODUCTO CON EL ID "${id}" NO EXISTE.`);
+            console.log(`ERROR EL PRODUCTO CON EL ID "${id}" NO EXISTE.`);
         }
     }
 
     updateProduct = async (id, field, newValue) => {
         const data = await this.getProduct()
-        const toBeUpdated = data.find(product => product.id === id)
+        const updated = data.find(product => product.id === id)
 
-        toBeUpdated[field] = newValue;
+        updated[field] = newValue;
         
         await fs.promises.writeFile(this.path, JSON.stringify(data))
     }

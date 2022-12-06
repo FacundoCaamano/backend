@@ -1,14 +1,14 @@
 const express = require('express')
 const format = "utf-8"
 const fs = require('fs')
-const path = "../../fileSystem/products.json"
+const path = "products.json"
 const products = fs.readFileSync(path, format)
 const parsProducts = JSON.parse(products)
 
 const app = express()
 
-app.get('/products', (req, response) => {
-    const limit = req.query.limit
+app.get('/products', (require, response) => {
+    const limit = require.query.limit
     
     if(limit){
         response.send(parsProducts.slice(0,limit))
@@ -16,12 +16,15 @@ app.get('/products', (req, response) => {
         response.send(parsProducts)
     }
 })
-app.get('/products/:pid', (req, response) => {
+app.get('/products/:pid', (require, response) => {
 
-    const productID = req.params.pid 
-    const product = parsProducts.find(product => product.id == productID)
-    if(!product) response.send(`<h2>Error: El producto no existe.</h2>`)
-    else response.send(product)
+    const productId = require.params.pid 
+    const product = parsProducts.find(product => product.id == productId)
+
+    if(!product)
+         response.send(`<h2>Error: El producto no existe.</h2>`)
+    else 
+        response.send(product)
 })
 
 app.listen(8080)
