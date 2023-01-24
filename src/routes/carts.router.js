@@ -3,7 +3,7 @@ import {Router} from 'express'
 const router = Router()
 
 
-import CartManager from '../cartManager.js';
+import CartManager from '../dao/manager/db/cartManager.js';
 const manager = new CartManager('./cart.json');
 
 router.get('/', async (req, res) => {
@@ -23,7 +23,7 @@ router.get('/:cid', async (req, res) => {
 
 
 router.post('/:cid/product/:pid', async (req, res) => {
-    const productID = parseInt(req.params.pid)
+    const productID = req.params.pid
     const cartID = req.params.cid
     await manager.addById(cartID,productID,1)
     const selCart = await manager.getById(cartID)
