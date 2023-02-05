@@ -8,18 +8,21 @@ const manager = new ProductManager('./productos.json');
 
 
 router.get('/', async (req, res) => {
-    const products = await manager.get()
+    
     let limit = req.query.limit
-    if (!limit) res.send({products})
-    else {
-        const prodLimit = [];
-        if (limit > products.length) limit = products.length;
-        for (let index = 0; index < limit; index++) {
-            prodLimit.push(products[index]);
-        }
+    let page = req.query.page
+    let query = req.query.query
+    let sort = req.query.sort
+
+    const products = await manager.get(limit, page, sort, query)
+    const user= req.session.user
+    res.render('product-pages',{products ,user})
+    
         req.io.emit('update', products) 
-    }
+
 })
+
+
 router.post('/', async (req, res) => {
     const {title, description, price, thumbnails, code, stock, category, status} = req.body
     const addProduct = await manager.add(title, description, price, code, stock, category, status, thumbnails)
@@ -27,10 +30,11 @@ router.post('/', async (req, res) => {
     res.send(addProduct)
 })
 
-router.get('products/:pid', async (req, res) => {
+router.get('/:pid', async (req, res) => {
     const id = req.params.pid
     const product = await manager.getById(id)
-    res.send({product})
+    res.render('product-detail',{ product})
+    
 })
 
 
@@ -52,20 +56,13 @@ router.get('/productosTR', async (req, res) =>{
     const products = await manager.get()
     res.render('productosTR',
     {
-        title: "e-commerce",
-        products: products
+        title: "lista",
+        products: products.payload
     })
 
 })
 
-router.get('/home', async (req, res) =>{
-    const products = await manager.get()
-    res.render('home',
-    {
-        title: "e-commerce",
-        products: products
-    })
-})
+
 
 
 export default router;
