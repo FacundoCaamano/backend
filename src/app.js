@@ -1,12 +1,15 @@
 import express from 'express';
 import handlebars from 'express-handlebars';
-import __dirname from './utils.js';
 import { Server } from 'socket.io';
 import mongoose from 'mongoose'
 import chatRouter from './routes/chat.router.js';
 import messagesModel from './dao/models/messages.model.js';
 import cartsRouter from './routes/carts.router.js';
 import productsRouter from './routes/products.router.js';
+import sessionRouter from './routes/session.router.js'
+import session from 'express-session';
+import MongoStore from 'connect-mongo';
+import __dirname from './utils.js';
 
 const app = express();
 
@@ -22,9 +25,22 @@ app.set('views', __dirname + '/views')
 app.set('view engine', 'handlebars')
 
 const uri = 'mongodb+srv://FacundoCaamano:LyMXNeB3ETCiOiyu@cluster0.iwosz6p.mongodb.net/?retryWrites=true&w=majority'
+const dbName= 'ecommerce'
+app.use(session({
+    store:MongoStore.create({
+        mongoUrl: uri,
+        dbname:dbName
+    }),
+    secret: 'mySecret',
+    resave:true,
+    saveUninitialized:true
+}))
+
 
 mongoose.set({strictQuery: true})
-mongoose.connect(uri,{dbName: 'ecommerce'}, async (error)=>{
+mongoose.connect(uri,{
+    dbname: dbName
+}, async (error)=>{
     if (!error){
         console.log('Conectado a la base de datos');
         const httpServer = app.listen(8080, ()=>{
@@ -57,6 +73,8 @@ mongoose.connect(uri,{dbName: 'ecommerce'}, async (error)=>{
             req.io = socketServer
             next()
         })
+       
+        app.use('/session', sessionRouter)
         app.use('/api/chat', chatRouter)
         app.use('/api/products', productsRouter)
         app.use('/api/carts', cartsRouter)

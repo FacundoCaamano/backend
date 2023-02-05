@@ -3,13 +3,28 @@ import productsModel from '../../models/products.model.js'
 class ProductManager{
 
 
-    get = async () => {
+    get = async (limit = '', page = '', sort = '', query = '') => {
         try{
-            let content=await productsModel.find().lean().exec();
-            return content
+            let querySearch = query ? (query=='disponible' ? {stock:{$gt:0}} : {category:{$regex:query, $options:'i'}}) : {};
+            let sortChoosen = sort ? (sort=='asc'?{price:1}:(sort=='desc'?{price:-1}:{})) : {};
+            let content=await productsModel.paginate(querySearch,{limit: limit || 10, page: page || 1, sort:sortChoosen, lean : true});
+            const prevLink = content.hasPrevPage ? (`products?${'page='+content.prevPage}${limit&&'&limit='+limit}${sort&&'&sort='+sort}${query&&'&query='+query}`) : null;
+            const nextLink = content.hasNextPage ? (`products?${'page='+content.nextPage}${limit&&'&limit='+limit}${sort&&'&sort='+sort}${query&&'&query='+query}`) : null;
+            return {
+                status:'success', 
+                payload: content.docs, 
+                totalPages:content.totalPages, 
+                prevPage: content.prevPage, 
+                nextPage: content.nextPage, 
+                page: content.page, 
+                hasPrevPage: content.hasPrevPage, 
+                hasNextPage: content.hasNextPage, 
+                prevLink, 
+                nextLink}
         }
         catch(err){
-            return "Can't reach products"
+            console.log(err);
+            return {status:'error', message:"Can't reach products"}
         }
 
     } 
@@ -25,7 +40,7 @@ class ProductManager{
 
     getById = async (id) => {
             if (id.length == 24){
-              return await productsModel.findOne({_id:id}) || "Product Id not found";  
+              return await productsModel.findOne({_id:id}).lean().exec() || "Product Id not found";  
             } else {
                 return 'ID must be 24 characters'
             }
