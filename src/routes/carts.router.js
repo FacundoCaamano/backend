@@ -31,7 +31,7 @@ router.post('/:cid/products/:pid', async (req, res) => {
         const cartId = req.params.cid
         const productId = req.params.pid
         const newCart = await manager.addProductById(cartId,productId,1)
-        res.send({status: 'success'})
+        res.send({status: 'success', message:'Agregado'})
     } catch (error) {
         res.status(401).send({status: 'error', message: error})
     }
