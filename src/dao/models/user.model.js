@@ -1,21 +1,26 @@
 import mongoose from 'mongoose'
 
-const UserCollection = 'user'
+const usersCollection = 'user'
 
-const userSchema = new mongoose.Schema({
+const usersSchema = new mongoose.Schema({
   first_name: String,
   last_name: String,
-  email: String,
+  email: {
+    type: String,
+    unique: true
+  },
   role: {
     type: String,
     default: 'user'
   },
+  password: String,
   age: Number,
-  password: String
+  cart: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'carts'
+  }
 })
 
-mongoose.set('strictQuery', false)
+const usersModel = mongoose.model(usersCollection, usersSchema)
 
-const UserModel = mongoose.model(UserCollection, userSchema)
-
-export default UserModel
+export default usersModel

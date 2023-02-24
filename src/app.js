@@ -8,6 +8,7 @@ import messagesModel from './dao/models/messages.model.js'
 import cartsRouter from './routes/carts.router.js'
 import productsRouter from './routes/products.router.js'
 import sessionRouter from './routes/session.router.js'
+import cookieParser from 'cookie-parser'
 import session from 'express-session'
 import MongoStore from 'connect-mongo'
 import passport from 'passport'
@@ -26,6 +27,8 @@ app.engine('handlebars', handlebars.engine())
 
 app.set('views', __dirname + '/views')
 app.set('view engine', 'handlebars')
+
+app.use(cookieParser('mySecret'))
 
 const uri = 'mongodb+srv://FacundoCaamano:LyMXNeB3ETCiOiyu@cluster0.iwosz6p.mongodb.net/?retryWrites=true&w=majority'
 const dbName = 'ecommerce'
@@ -76,13 +79,17 @@ mongoose.connect(uri, {
 
     initializePassport()
     app.use(passport.initialize())
-    app.use(passport.session())
 
-    app.use('/session', viewsRouter)
-    app.use('/api/session', sessionRouter)
-    app.use('/api/chat', chatRouter)
     app.use('/api/products', productsRouter)
     app.use('/api/carts', cartsRouter)
+    app.use('/api/chat', chatRouter)
+    app.use('/session', sessionRouter)
+    app.use('/views', viewsRouter)
+
+    app.get('/', passport.authenticate('current', { session: false, failureRedirect: 'views/login' }), (req, res) => {
+      res.redirect('views/products')
+    }
+    )
   } else {
     console.log('ups!! no se pudo conectar a la base de datos')
   }

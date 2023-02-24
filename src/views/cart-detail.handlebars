@@ -21,7 +21,7 @@
        
             <td> <a class="detalle" href="/api/products/{{this.product._id}}">{{this.product.title}} {{this.product.description}}</a></td>
             <td class="detalle">{{this.quantity}}</td>
-        
+            <td><button class="btn btn-danger" type="button" name="removeFromCart" id="{{product._id}}">Eliminar</button></td>    
             
         </tr>
     {{/each}}  

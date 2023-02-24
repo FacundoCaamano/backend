@@ -24,9 +24,6 @@ const productsSchema = new mongoose.Schema({
   }
 })
 
-/*
-productsSchema.index({category: 'text'})
- */
 productsSchema.plugin(mongoosePaginate)
 
 const productsModel = mongoose.model(productsCollection, productsSchema)

@@ -1,42 +1,39 @@
 import { Router } from 'express'
 import passport from 'passport'
+import { generateToken } from '../jwt_utils.js'
 
 const router = Router()
 
 // api para crear usuarios
 router.post('/register', passport.authenticate('register', { failureRedirect: '/views/failregister' }), async (req, res) => {
   console.log(req.user)
-  res.redirect('/session/login')
+  res.redirect('/views/login')
 })
 
 // api para login
-router.post('/login', passport.authenticate('login', { failureRedirect: '/views/faillogin' }), async (req, res) => {
+router.post('/login', passport.authenticate('login', { session: false, failureRedirect: '/views/faillogin' }), async (req, res) => {
   if (!req.user) {
-    return res.status(401).render('session/login', { error: 'User not found or Incorrect password' })
+    return res.status(401).render('session-views/login', { error: 'User not found or Incorrect password' })
   }
-  req.session.user = {
-    first_name: req.user.first_name,
-    last_name: req.user.last_name,
-    role: req.user.role,
-    email: req.user.email
-  }
-  return res.redirect('/views/products')
+  const accessToken = generateToken(req.user)
+
+  return res.cookie('auth', accessToken).redirect('/views/products')
 })
+
 router.get('/login-github', passport.authenticate('github'), async (req, res) => {})
 
-router.get('/githubcallback', passport.authenticate('github', { failureRedirect: '/views/faillogin' }), async (req, res) => {
-  req.session.user = req.user
-  return res.redirect('/api/products')
+router.get('/githubcallback', passport.authenticate('github', { session: false, failureRedirect: '/views/faillogin' }), async (req, res) => {
+  const accessToken = generateToken(req.user)
+  return res.cookie('auth', accessToken).redirect('/views/products')
 })
 
 // cerrar sesion
-router.get('/logout', async (req, res) => {
-  req.session.destroy(err => {
-    if (err) {
-      console.log(err)
-      res.status(500).render('error/base', { error: err })
-    } else res.redirect('/session/login')
-  })
+router.get('/logout', (req, res) => {
+  res.clearCookie('auth').redirect('/views/login')
+})
+
+router.get('/current', passport.authenticate('current', { session: false }), (req, res) => {
+  res.send(req.user.user)
 })
 
 export default router

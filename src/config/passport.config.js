@@ -1,35 +1,57 @@
 import passport from 'passport'
 import local from 'passport-local'
 import GitHubStrategy from 'passport-github2'
+import jwt from 'passport-jwt'
+import fetch from 'node-fetch'
 
 import usersModel from '../dao/models/user.model.js'
-import { createHash, isValidPassword } from '../utils.js'
+import { createHash, isValidPassword } from '../encrypt.js'
+import { PRIVATE_KEY } from '../jwt_utils.js'
 
+const JWTStrategy = jwt.Strategy
+const ExtractJWT = jwt.ExtractJwt
 const LocalStrategy = local.Strategy
 
+const cookieExtractor = req => {
+  const token = req?.cookies.auth || null
+  console.log('Cookie Extractor', token)
+  return token
+}
+
 const initializePassport = () => {
+  passport.use('current', new JWTStrategy({
+    jwtFromRequest: ExtractJWT.fromExtractors([cookieExtractor]),
+    secretOrKey: PRIVATE_KEY // DEBE SER LA MISMA que como la del JWT UTILS
+  }, async (jwt_payload, done) => {
+    try {
+      return done(null, jwt_payload)
+    } catch (error) {
+      return done(error)
+    }
+  }))
+
   passport.use('register', new LocalStrategy({
     passReqToCallback: true,
     usernameField: 'email'
   }, async (req, username, password, done) => {
-    const { first_name, last_name, email } = req.body
+    const { first_name, last_name, email, age } = req.body
 
-    try {
-      const user = await usersModel.findOne({ email: username }).lean().exec()
-      if (user) {
-        return done({ passportError: 'Usuario ya existente en la base de datos' }, false)
-      }
-      const newUser = await usersModel.create({
-        first_name,
-        last_name,
-        email,
-        password: createHash(password)
-      })
-
-      return done(null, newUser)
-    } catch (error) {
-      return done({ catchErrorPassport: 'Error al obtener usuario', error })
+    const user = await usersModel.findOne({ email: username }).lean().exec()
+    if (user) {
+      return done('Usuario ya existente en la base de datos', false)
     }
+
+    const newUser = await usersModel.create({
+      first_name,
+      last_name,
+      email,
+      password: createHash(password),
+      age,
+      cart: await fetch('http://127.0.0.1:8080/api/carts', { method: 'POST' }).then(res => res.json()).then(data => data._id)
+
+    })
+
+    return done(null, newUser)
   }))
 
   passport.use('login', new LocalStrategy({
@@ -38,14 +60,15 @@ const initializePassport = () => {
     try {
       const user = await usersModel.findOne({ email: username }).lean().exec()
       if (!user) {
-        console.log('Contrasena incorrecta')
+        console.log('NO USER: No hay usuario registrado con ese email')
         return done(null, false)
       }
       if (!isValidPassword(user, password)) {
-        console.log('Contraseña incorrecta')
+        console.log('INCORRECT PASSWORD: Contraseña incorrecta')
         return done(null, false)
       }
-      return done(null, false)
+
+      return done(null, user)
     } catch (error) {
       return done('PASSPORT_ERROR: ', error)
     }
@@ -65,8 +88,10 @@ const initializePassport = () => {
       const newUser = await usersModel.create({
         first_name: profile._json.name,
         last_name: '',
-        email: profile.email[0].value,
-        password: ''
+        email: profile.emails[0].value,
+        password: '',
+        age: '',
+        cart: await fetch('http://127.0.0.1:8080/api/carts', { method: 'POST' }).then(res => res.json()).then(data => data._id)
       })
       return done(null, newUser)
     } catch (error) {

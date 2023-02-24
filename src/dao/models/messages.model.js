@@ -1,14 +1,14 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose'
 
-const messagesCollection = 'messages';
+const messagesCollection = 'messages'
 
 const messagesSchema = new mongoose.Schema({
 
-    message: String,
-    user: String
-    
-});
+  message: String,
+  user: String
 
-const messagesModel = mongoose.model(messagesCollection, messagesSchema);
+})
 
-export default messagesModel;
+const messagesModel = mongoose.model(messagesCollection, messagesSchema)
+
+export default messagesModel
