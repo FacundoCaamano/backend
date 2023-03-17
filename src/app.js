@@ -4,13 +4,14 @@ import { Server } from 'socket.io'
 import mongoose from 'mongoose'
 import chatRouter from './routes/chat.router.js'
 import viewsRouter from './routes/views.router.js'
-import messagesModel from './dao/models/messages.model.js'
+import messagesModel from './dao/db/models/messages.model.js'
+import config from './config/config.js'
 import cartsRouter from './routes/carts.router.js'
 import productsRouter from './routes/products.router.js'
 import sessionRouter from './routes/session.router.js'
 import cookieParser from 'cookie-parser'
-import session from 'express-session'
-import MongoStore from 'connect-mongo'
+// import session from 'express-session'
+// import MongoStore from 'connect-mongo'
 import passport from 'passport'
 import initializePassport from './config/passport.config.js'
 import __dirname from './utils.js'
@@ -30,25 +31,23 @@ app.set('view engine', 'handlebars')
 
 app.use(cookieParser('mySecret'))
 
-const uri = 'mongodb+srv://FacundoCaamano:LyMXNeB3ETCiOiyu@cluster0.iwosz6p.mongodb.net/?retryWrites=true&w=majority'
-const dbName = 'ecommerce'
-app.use(session({
-  store: MongoStore.create({
-    mongoUrl: uri,
-    dbname: dbName
-  }),
-  secret: 'mySecret',
-  resave: true,
-  saveUninitialized: true
-}))
+// app.use(session({
+//   store: MongoStore.create({
+//     mongoUrl: config.MONGO_URI,
+//     dbname: config.MONGO_DB_NAME
+//   }),
+//   secret: 'mySecret',
+//   resave: true,
+//   saveUninitialized: true
+// }))
 
 mongoose.set({ strictQuery: true })
-mongoose.connect(uri, {
-  dbname: dbName
+mongoose.connect(config.MONGO_URI, {
+  dbname: config.MONGO_DB_NAME
 }, async (error) => {
   if (!error) {
     console.log('Conectado a la base de datos')
-    const httpServer = app.listen(8080, () => {
+    const httpServer = app.listen(config.PORT, () => {
       console.log('Servidor corriendo...')
     })
 

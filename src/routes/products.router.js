@@ -1,20 +1,16 @@
 import { Router } from 'express'
 
-import ProductManager from '../dao/manager/db/productManager.js'
+import ProductManager from '../managers/product.manager.js'
 
 const router = Router()
 const manager = new ProductManager()
 
 router.get('/', async (req, res) => {
-  const limit = req.query.limit
-  const page = req.query.page
-  const query = req.query.query
-  const sort = req.query.sort
-
+  const { limit, page, query, sort } = req.query
   const products = await manager.get(limit, page, sort, query)
-  res.send(products)
 
   req.io.emit('updatedProducts', products)
+  res.send(products)
 })
 
 router.post('/', async (req, res) => {
