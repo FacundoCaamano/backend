@@ -2,20 +2,12 @@ import cartsModel from './models/carts.model.js'
 
 class CartMongo {
   get = async (id = '') => {
-    try {
-      if (!id) return await cartsModel.find().lean().exec()
-      return await cartsModel.findOne({ _id: id }).lean().exec()
-    } catch (error) {
-      return 'MONGO DAO - Cannot get data'
-    }
+    if (!id) return await cartsModel.find().lean().exec()
+    return await cartsModel.findOne({ _id: id }).lean().exec()
   }
 
-  create = async () => {
-    try {
-      return await cartsModel.create({ products: [] })
-    } catch (err) {
-      return 'MONGO DAO - Cannot create data'
-    }
+  create = async (cart) => {
+    return await cartsModel.create(cart)
   }
 
   update = async (cartId, productId, quantity, exists) => {

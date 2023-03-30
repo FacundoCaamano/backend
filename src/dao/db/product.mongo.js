@@ -18,7 +18,7 @@ class ProductMongo {
   }
 
   update = async (id, updatedProduct) => {
-    return await productsModel.updateOne({ _id: id }, updatedProduct)
+    return await productsModel.updateOne({ _id: id }, { $set: updatedProduct })
   }
 
   delete = async (id) => {

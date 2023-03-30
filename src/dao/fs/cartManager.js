@@ -1,28 +1,24 @@
 import fs from 'fs'
-
+// revisar product no definido
 class CartManager {
-  constructor (path) {
+  constructor () {
     this.carts = new Array()
-    this.path = path
+    this.path = 'cart.json'
     this.format = 'utf-8'
   }
 
-  get = async () => {
+  get = async (id = '') => {
     try {
       const contenido = await fs.promises.readFile(this.path, this.format)
       this.carts = JSON.parse(contenido)
-      return this.carts
+      if (!id) return this.carts
+      return await this.carts.find(cart => cart.id === id) || 'Cart Id not found'
     } catch (err) {
       return 'No se pudo obtener los carros'
     }
   }
 
-  getNextId () {
-    const size = this.carts.length
-    return size > 0 ? this.carts[size - 1].id + 1 : 1
-  }
-
-  async add () {
+  create = async () => {
     await this.get()
     const newCart = {
       id: this.getNextId(),
@@ -32,20 +28,37 @@ class CartManager {
     (this.carts.push(newCart), await fs.promises.writeFile(this.path, JSON.stringify(this.carts)), newCart)
   }
 
-  getById = async (id) => {
-    await this.get()
-    return this.carts.find(c => c.id == id) || 'No se encontro el id del carro'
-  }
-
-  addById = async (cartID, productID, quantity) => {
-    const cart = await this.getById(cartID)
-    const product = cart.products?.find(product => product.product == productID)
-
-    if
-    (!product) cart.products?.push({ product: productID, quantity })
+  update = async (cartId, productId, quantity, exists) => {
+    const cart = await this.get(cartId)
+    if (exists === false) cart.products?.push({ product: productId, quantity })
     else { product.quantity += quantity }
 
     return (await fs.promises.writeFile(this.path, JSON.stringify(this.carts)), cart)
+  }
+
+  clean = async (cartId) => {
+    const cart = await this.get(cartId)
+    cart.products = []
+    return await (await fs.promises.writeFile(this.path, JSON.stringify(this.carts)), cart)
+  }
+
+  delete = async (cartId, prodId) => {
+    const cart = await this.get(cartId)
+    const carts = await this.get()
+    const index = cart.products.findIndex(product => { product.id == prodId })
+    carts.splice(1, index)
+    return await (await fs.promises.writeFile(this.path, JSON.stringify(this.carts)), cart)
+  }
+
+  replace = async (cartId, products) => {
+    const cart = await this.get(cartId)
+    cart.products = products
+    return await (await fs.promises.writeFile(this.path, JSON.stringify(this.carts)), cart)
+  }
+
+  getNextId () {
+    const size = this.carts.length
+    return size > 0 ? this.carts[size - 1].id + 1 : 1
   }
 }
 

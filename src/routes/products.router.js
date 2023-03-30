@@ -1,53 +1,20 @@
 import { Router } from 'express'
 
-import ProductManager from '../managers/product.manager.js'
+import { getProducts, getProductById, addProduct, updateProductById, deleteProduct, mockingProducts } from '../controller/products.controller.js'
+import { passportCall, authorization } from '../passport_custom.js'
 
 const router = Router()
-const manager = new ProductManager()
 
-router.get('/', async (req, res) => {
-  const { limit, page, query, sort } = req.query
-  const products = await manager.get(limit, page, sort, query)
+router.get('/products', getProducts)
 
-  req.io.emit('updatedProducts', products)
-  res.send(products)
-})
+router.get('/products/:pid', getProductById)
 
-router.post('/', async (req, res) => {
-  const { title, description, price, thumbnails, code, stock, category, status } = req.body
-  const addProduct = await manager.add(title, description, price, code, stock, category, status, thumbnails)
-  req.io.emit('updateProducts', await manager.get())
-  res.send(addProduct)
-})
+router.get('/mockingproducts', mockingProducts)
 
-router.get('/:pid', async (req, res) => {
-  const id = req.params.pid
-  const product = await manager.getById(id)
-  res.send(product)
-})
+router.post('/', passportCall('current', { session: false, failureRedirect: '/views/login' }), authorization(['ADMIN']), addProduct)
 
-router.put('/:pid', async (req, res) => {
-  const id = req.params.pid
-  const { title, description, price, thumbnails, code, stock, category, status } = req.body
-  const updateProduct = await manager.updateById(id, title, description, price, code, stock, category, status, thumbnails)
-  req.io.emit('update', await manager.get())
-  res.send(updateProduct)
-})
+router.put('/:pid', passportCall('current', { session: false, failureRedirect: '/views/login' }), authorization(['ADMIN']), updateProductById)
 
-router.delete('/:pid', async (req, res) => {
-  const id = req.params.pid
-  const deleteProduct = await manager.deleteById(id)
-  req.io.emit('update', await manager.get())
-  res.send(deleteProduct)
-})
-
-router.get('/productosTR', async (req, res) => {
-  const products = await manager.get()
-  res.render('productosTR',
-    {
-      title: 'lista',
-      products: products.payload
-    })
-})
+router.delete('/:pid', passportCall('current', { session: false, failureRedirect: '/views/login' }), authorization(['ADMIN']), deleteProduct)
 
 export default router

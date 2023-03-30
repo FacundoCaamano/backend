@@ -4,14 +4,13 @@ import { Server } from 'socket.io'
 import mongoose from 'mongoose'
 import chatRouter from './routes/chat.router.js'
 import viewsRouter from './routes/views.router.js'
-import messagesModel from './dao/db/models/messages.model.js'
+import { MessageService } from './repositories/index.js'
 import config from './config/config.js'
 import cartsRouter from './routes/carts.router.js'
 import productsRouter from './routes/products.router.js'
 import sessionRouter from './routes/session.router.js'
 import cookieParser from 'cookie-parser'
-// import session from 'express-session'
-// import MongoStore from 'connect-mongo'
+import errorHandler from './middlewares/errors.js'
 import passport from 'passport'
 import initializePassport from './config/passport.config.js'
 import __dirname from './utils.js'
@@ -60,13 +59,13 @@ mongoose.connect(config.MONGO_URI, {
       socket.emit('msg_back', 'Conectado al servicio')
 
       socket.on('session', async data => {
-        messages = await messagesModel.find().lean().exec()
+        messages = await MessageService.get()
         socketServer.emit('first', messages)
       })
 
       socket.on('message', async data => {
-        await messagesModel.create(data)
-        messages = await messagesModel.find().lean().exec()
+        await MessageService.create(data)
+        messages = await MessageService.get()
         socketServer.emit('logs', messages)
       })
     })
@@ -84,8 +83,9 @@ mongoose.connect(config.MONGO_URI, {
     app.use('/api/chat', chatRouter)
     app.use('/session', sessionRouter)
     app.use('/views', viewsRouter)
+    app.use(errorHandler)
 
-    app.get('/', passport.authenticate('current', { session: false, failureRedirect: 'views/login' }), (req, res) => {
+    app.get('/', (req, res) => {
       res.redirect('views/products')
     }
     )
