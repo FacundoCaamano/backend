@@ -47,7 +47,6 @@ class ProductRepository {
 
       else return { status: 'error', error: 'Product ID not found' }
     } catch (error) {
-      console.log(error)
       return { status: 'error', error: 'Incorrect Id' }
     }
   }

@@ -14,6 +14,7 @@ import errorHandler from './middlewares/errors.js'
 import passport from 'passport'
 import initializePassport from './config/passport.config.js'
 import __dirname from './utils.js'
+import { addLogger } from './logger_utils.js'
 
 const app = express()
 
@@ -22,6 +23,7 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 app.use(express.static(__dirname + '/public'))
+app.use(addLogger)
 
 app.engine('handlebars', handlebars.engine())
 
@@ -84,6 +86,15 @@ mongoose.connect(config.MONGO_URI, {
     app.use('/session', sessionRouter)
     app.use('/views', viewsRouter)
     app.use(errorHandler)
+
+    app.get('/loggerTest', (req, res) => {
+      req.logger.fatal('FATAL')
+      req.logger.error('ERROR')
+      req.logger.warning('WARNING')
+      req.logger.info('INFO')
+      req.logger.http('HTTP')
+      req.logger.debug('DEBUG')
+    })
 
     app.get('/', (req, res) => {
       res.redirect('views/products')
