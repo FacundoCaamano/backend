@@ -16,12 +16,19 @@
 </form>
 </div>
 <div class="d-flex justify-content-center">
-<h2>Login con GitHub</h2>
-<button><a href="/session/login-github">Iniciar sesión con GitHub <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="30"></a></button>
+<h6><i><a class="text-light" href="/views/reminder">Olvidé mi contraseña</a></i></h6>
 <br>
+{{#if message}}
+<i style="color: blue;">{{message}}</i>
+{{/if}}
 {{#if error}}
 <i style="color: red;">{{error}}</i>
 {{/if}}
+<br>
+<br>
+<h2 class="text-light">Login con GitHub</h2>
+<button><a href="/session/login-github">Iniciar sesión con GitHub <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="30"></a></button>
+<br>
 <br>
 <h5 class="text-light">¿No tienes un usuario? <a class="text-light" href="/views/register">Regístrate</a></h5>
 </div>

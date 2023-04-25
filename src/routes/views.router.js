@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import passport from 'passport'
-import { cartDetail, failLoginView, failRegisterView, getProductByIdView, getProductsView, homeView, loginView, realtimeProductsView, registerView } from '../controller/views.controller.js'
+import { cartDetail, failLoginView, failRegisterView, getProductByIdView, getProductsView, homeView, loginView, realtimeProductsView, registerView, reminderView } from '../controller/views.controller.js'
 import { passportCall, authorization } from '../passport_custom.js'
 
 const router = Router()
@@ -13,7 +13,7 @@ router.get('/home', passportCall('current', { session: false, failureRedirect: '
 
 router.get('/realtimeproducts', passportCall('current', { session: false, failureRedirect: '/views/login' }), authorization(['PUBLIC']), realtimeProductsView)
 
-router.get('/carts/:cid', passportCall('current', { session: false, failureRedirect: '/views/login' }), authorization(['USER', 'ADMIN']), cartDetail)
+router.get('/carts/:cid', passportCall('current', { session: false, failureRedirect: '/views/login' }), authorization(['USER', 'ADMIN', 'PREMIUM']), cartDetail)
 
 router.get('/login', loginView)
 
@@ -22,5 +22,6 @@ router.get('/register', registerView)
 router.get('/failregister', failRegisterView)
 
 router.get('/faillogin', failLoginView)
+router.get('/reminder', reminderView)
 
 export default router

@@ -21,7 +21,8 @@ export const getProductById = async (req, res) => {
 export const addProduct = async (req, res, next) => {
   try {
     const { title, description, price, thumbnails, code, stock, category, status } = req.body
-    const addProduct = await ProductService.add(title, description, price, code, stock, category, status, thumbnails)
+    const ownerID = req.user.user.role === 'admin' ? 'admin' : req.user.user._id
+    const addProduct = await ProductService.add(title, description, price, code, stock, category, status, thumbnails, ownerID)
     req.io.emit('updatedProducts', await ProductService.get())
     res.send(addProduct)
   } catch (err) {
@@ -33,7 +34,8 @@ export const updateProductById = async (req, res, next) => {
   try {
     const id = req.params.pid
     const product = req.body
-    const updateProduct = await ProductService.updateProductById(id, product)
+    const ownerID = req.user.user.role === 'admin' ? 'admin' : req.user.user._id
+    const updateProduct = await ProductService.updateProductById(id, product, ownerID)
     req.io.emit('updatedProducts', await ProductService.get())
     res.send(updateProduct)
   } catch (err) {
@@ -43,7 +45,8 @@ export const updateProductById = async (req, res, next) => {
 
 export const deleteProduct = async (req, res) => {
   const id = req.params.pid
-  const deleteProduct = await ProductService.deleteById(id)
+  const ownerID = req.user.user.role === 'admin' ? 'admin' : req.user.user._id
+  const deleteProduct = await ProductService.deleteById(id, ownerID)
   req.io.emit('updatedProducts', await ProductService.get())
   res.send(deleteProduct)
 }

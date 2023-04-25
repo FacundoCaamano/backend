@@ -32,8 +32,8 @@ class ProductRepository {
     }
   }
 
-  async add (title, description, price, code, stock, category, status = true, thumbnails = []) {
-    const newProduct = this.#newProduct(title, description, price, code, stock, category, status, thumbnails)
+  async add (title, description, price, code, stock, category, status = true, thumbnails = [], ownerId = 'admin') {
+    const newProduct = this.#newProduct(title, description, price, code, stock, category, status, thumbnails, ownerId)
     console.log(newProduct)
     const productToInsert = new ProductDTO(newProduct)
     const errors = await this.#errorCheck(productToInsert, 'add', false)
@@ -51,26 +51,31 @@ class ProductRepository {
     }
   }
 
-  updateProductById = async (id, product) => {
-    if (typeof (id) !== 'object' && id.length != 24) return (console.log('ID must be 24 characters'), { error: 'ID must be 24 characters' })
+  updateProductById = async (id, product, userId) => {
+    if (typeof (id) !== 'object' && id.length !== 24) return (console.log('ID must be 24 characters'), { error: 'ID must be 24 characters' })
     const errors = await this.#errorCheck(product, 'update', id)
-    if (!await this.dao.getOne(id)) errors.push('Product Id not found')
+    const originalProduct = await this.dao.getOne(id)
+    if (!originalProduct) errors.push('Product Id not found')
+    if ((originalProduct.owner !== userId) && (userId !== 'admin')) errors.push('Product Owner not match')
     const updatedProduct = await this.dao.update(id, product)
     const newProduct = await this.getProductById(id)
     return errors.length === 0 ? (updatedProduct, newProduct) : errors
   }
 
-  deleteById = async (id) => {
+  deleteById = async (id, userId) => {
     if (id.length === 24) {
       const productToDelete = await this.dao.getOne(id)
+      if (!productToDelete) return { error: 'Product Id not found' }
+      console.log(userId)
+      if ((productToDelete.owner !== userId) && (userId !== 'admin')) return { error: 'Product Owner not match' }
       if (productToDelete) return (productToDelete, await this.dao.delete(id), { message: 'Success' })
-      else return { error: 'Product Id not found' }
+      else return { error: 'No product to delete found' }
     } else {
       return { error: 'ID must be 24 characters' }
     }
   }
 
-  #newProduct (title, description, price, code, stock, category, status, thumbnails) {
+  #newProduct (title, description, price, code, stock, category, status, thumbnails, owner) {
     const newProduct = {
       title,
       description,
@@ -79,7 +84,8 @@ class ProductRepository {
       code,
       stock,
       category,
-      status
+      status,
+      owner
     }
     return newProduct
   }
