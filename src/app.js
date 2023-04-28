@@ -15,6 +15,8 @@ import passport from 'passport'
 import initializePassport from './config/passport.config.js'
 import __dirname from './utils.js'
 import { addLogger } from './logger_utils.js'
+import swaggerJSDoc from 'swagger-jsdoc'
+import swaggerUiExpress from 'swagger-ui-express'
 
 const app = express()
 
@@ -32,15 +34,19 @@ app.set('view engine', 'handlebars')
 
 app.use(cookieParser('mySecret'))
 
-// app.use(session({
-//   store: MongoStore.create({
-//     mongoUrl: config.MONGO_URI,
-//     dbname: config.MONGO_DB_NAME
-//   }),
-//   secret: 'mySecret',
-//   resave: true,
-//   saveUninitialized: true
-// }))
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.1',
+    info: {
+      title: 'Documentacion de e-Commerce',
+      description: 'Este proyecto e-Commerce pertenece al trabajado integrador final del curso Backend'
+    }
+  },
+  apis: [`${__dirname}/docs/**/*.yaml`]
+}
+
+const specs = swaggerJSDoc(swaggerOptions)
+app.use('/apidocs', swaggerUiExpress.serve, swaggerUiExpress.setup(specs))
 
 mongoose.set({ strictQuery: true })
 mongoose.connect(config.MONGO_URI, {
